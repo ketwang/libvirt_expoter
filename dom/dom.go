@@ -1,9 +1,9 @@
 package dom
 
 import (
-	"io"
 	"bufio"
 	"errors"
+	"io"
 	"strings"
 
 	"gopkg.in/yaml.v2"

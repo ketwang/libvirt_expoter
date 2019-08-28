@@ -5,8 +5,8 @@ import (
 	"libvirt_exporter/pool"
 	"strconv"
 
-	"libvirt_exporter/dom"
 	"github.com/prometheus/client_golang/prometheus"
+	"libvirt_exporter/dom"
 )
 
 type LibvirtExporter struct {
@@ -40,11 +40,10 @@ type LibvirtExporter struct {
 	LibvirtDomainInfoBlockWrTimes *prometheus.Desc
 	LibvirtDomainInfoBlockFlReqs  *prometheus.Desc
 	LibvirtDomainInfoBlockFlTimes *prometheus.Desc
-	LibvirtPoolInfo				  *prometheus.Desc
-	LibvirtPoolInfoStatus		  *prometheus.Desc
+	LibvirtPoolInfo               *prometheus.Desc
+	LibvirtPoolInfoStatus         *prometheus.Desc
 	LibvirtPoolInfoCapacity       *prometheus.Desc
 	LibvirtPoolInfoAllocated      *prometheus.Desc
-
 }
 
 func (e *LibvirtExporter) Describe(ch chan<- *prometheus.Desc) {
@@ -132,7 +131,7 @@ func (e *LibvirtExporter) Collect(ch chan<- prometheus.Metric) {
 		e.LibvirtPoolInfo,
 		prometheus.GaugeValue,
 		float64(len(pools)),
-		)
+	)
 	for _, p := range pools {
 		poolMeta, err := p.GetOverallState()
 		if err != nil {
@@ -143,7 +142,7 @@ func (e *LibvirtExporter) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func (e *LibvirtExporter) CollectPool(poolMeta *pool.PoolMeta, ch chan <- prometheus.Metric)  {
+func (e *LibvirtExporter) CollectPool(poolMeta *pool.PoolMeta, ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(
 		e.LibvirtPoolInfoCapacity,
 		prometheus.GaugeValue,
@@ -155,7 +154,7 @@ func (e *LibvirtExporter) CollectPool(poolMeta *pool.PoolMeta, ch chan <- promet
 			return float64(v)
 		}(),
 		[]string{poolMeta.Name}...,
-		)
+	)
 
 	ch <- prometheus.MustNewConstMetric(
 		e.LibvirtPoolInfoAllocated,
@@ -168,7 +167,7 @@ func (e *LibvirtExporter) CollectPool(poolMeta *pool.PoolMeta, ch chan <- promet
 			return float64(v)
 		}(),
 		[]string{poolMeta.Name}...,
-		)
+	)
 
 	ch <- prometheus.MustNewConstMetric(
 		e.LibvirtPoolInfoStatus,
@@ -180,7 +179,7 @@ func (e *LibvirtExporter) CollectPool(poolMeta *pool.PoolMeta, ch chan <- promet
 			return 1
 		}(),
 		[]string{poolMeta.Name}...,
-		)
+	)
 }
 
 func (e *LibvirtExporter) CollectDomain(domMeta *dom.DomMeta, ch chan<- prometheus.Metric) {

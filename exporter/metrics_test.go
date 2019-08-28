@@ -1,9 +1,9 @@
 package exporter
 
 import (
-	"testing"
-	"github.com/stretchr/testify/require"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestNewLibvirtExporter(t *testing.T) {
