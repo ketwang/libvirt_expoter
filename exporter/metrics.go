@@ -365,79 +365,82 @@ func (e *LibvirtExporter) CollectDomain(domMeta *dom.DomMeta, ch chan<- promethe
 
 		for i := int64(0); i < int64(ConvertToFloat64(v)); i++ {
 			if name, ok := domMeta.Annotations[fmt.Sprintf("block.%d.name", i)]; ok {
-				if path, ok := domMeta.Annotations[fmt.Sprintf("block.%d.path", i)]; ok {
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.rd.reqs", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockRdReqs,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.rd.bytes", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockRdBytes,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.rd.times", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockRdTimes,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.wr.reqs", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockWrReqs,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.wr.bytes", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockWrReqs,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.wr.times", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockWrTimes,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.fl.reqs", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockFlReqs,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
-
-					if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.fl.times", i)]; ok {
-						prometheus.MustNewConstMetric(
-							e.LibvirtDomainInfoBlockFlTimes,
-							prometheus.GaugeValue,
-							ConvertToFloat64(v),
-							[]string{domain, uuid, name, path}...,
-						)
-					}
+				var path string
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.path", i)]; ok {
+					path = v
 				}
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.rd.reqs", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockRdReqs,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.rd.bytes", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockRdBytes,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.rd.times", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockRdTimes,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.wr.reqs", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockWrReqs,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.wr.bytes", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockWrBytes,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.wr.times", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockWrTimes,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.fl.reqs", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockFlReqs,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
+				if v, ok := domMeta.Annotations[fmt.Sprintf("block.%d.fl.times", i)]; ok {
+					ch <- prometheus.MustNewConstMetric(
+						e.LibvirtDomainInfoBlockFlTimes,
+						prometheus.GaugeValue,
+						ConvertToFloat64(v),
+						[]string{domain, uuid, name, path}...,
+					)
+				}
+
 			}
 		}
 	}
