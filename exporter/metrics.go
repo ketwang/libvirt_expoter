@@ -2,14 +2,14 @@ package exporter
 
 import (
 	"io/ioutil"
-	"libvirt_exporter/pool"
-	"libvirt_exporter/util"
+	"libvirt-exporter/pool"
+	"libvirt-exporter/util"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"libvirt_exporter/dom"
+	"libvirt-exporter/dom"
 )
 
 type LibvirtExporter struct {

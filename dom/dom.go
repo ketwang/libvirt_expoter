@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v2"
-	"libvirt_exporter/cmdutil"
+	"libvirt-exporter/cmdutil"
 )
 
 const (

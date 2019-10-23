@@ -1,4 +1,4 @@
-module libvirt_exporter
+module libvirt-exporter
 
 go 1.12
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"libvirt_exporter/exporter"
+	"libvirt-exporter/exporter"
 	"net/http"
 	_ "net/http/pprof"
 
