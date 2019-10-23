@@ -2,12 +2,18 @@ package dom
 
 import (
 	"bufio"
+	"encoding/xml"
 	"errors"
 	"io"
+	"io/ioutil"
 	"strings"
 
 	"gopkg.in/yaml.v2"
 	"libvirt_exporter/cmdutil"
+)
+
+const (
+	qemuXMLPath = "/var/run/libvirt/qemu/"
 )
 
 var (
@@ -22,21 +28,44 @@ const (
 	STATE_OTHER   = "other"
 )
 
+type Nic struct {
+	Interface string
+	Type      string
+	Source    string
+	Model     string
+	MAC       string
+}
+
+type VCPUCollection struct {
+	XMLName xml.Name `xml:"domstatus"`
+	PID     string   `xml:"pid,attr"`
+	VCPUs   []VCPU   `xml:"vcpus>vcpu"`
+}
+
+type VCPU struct {
+	XMLName xml.Name `xml:"vcpu"`
+	Index   string   `xml:"id,attr"`
+	PID     string   `xml:"pid,attr"`
+}
+
 type DomMeta struct {
-	Name        string `yaml:"Name"`
-	UUID        string `yaml:"UUID"`
-	Mem         string `yaml:"Max memory"`
-	CPU         string `yaml:"CPU(s)"`
-	State       string `yaml:"State"`
-	Annotations map[string]string
+	Name  string `yaml:"Name"`
+	UUID  string `yaml:"UUID"`
+	Mem   string `yaml:"Max memory"`
+	CPU   string `yaml:"CPU(s)"`
+	State string `yaml:"State"`
+	Nics  []Nic
+	VCpus VCPUCollection
 }
 
 type Dom interface {
-	String() string
+	Name() string
 	GetOverallState() (*DomMeta, error)
-	GetStats() (string, error)
 	GetDoms() ([]Dom, error)
-	GetDomByUUID(uuid string) (Dom, error)
+}
+
+func NewDom() (Dom, error) {
+	return &DomObj{}, nil
 }
 
 type DomObj struct {
@@ -45,11 +74,15 @@ type DomObj struct {
 
 var _ Dom = &DomObj{}
 
-func (d *DomObj) String() string {
+func (d *DomObj) Name() string {
 	return d.Domain
 }
 
 func (d *DomObj) GetOverallState() (*DomMeta, error) {
+	dm := &DomMeta{
+		Nics: make([]Nic, 0),
+	}
+
 	args := []string{"dominfo", d.Domain}
 	output, errput, err := cmdutil.Command("virsh", args)
 	if err != nil {
@@ -60,10 +93,6 @@ func (d *DomObj) GetOverallState() (*DomMeta, error) {
 		return nil, errors.New(string(errput))
 	}
 
-	dm := &DomMeta{
-		Annotations: make(map[string]string, 0),
-	}
-
 	// rm line `id: -`
 	strOutput := strings.Join(strings.Split(string(output), "\n")[1:], "\n")
 
@@ -71,7 +100,12 @@ func (d *DomObj) GetOverallState() (*DomMeta, error) {
 		return nil, err
 	}
 
-	args = []string{"domstats", d.Domain}
+	if dm.State != STATE_RUNNING {
+		return dm, nil
+	}
+
+	// get nic list
+	args = []string{"domiflist", d.Domain}
 	output, errput, err = cmdutil.Command("virsh", args)
 	if err != nil {
 		return nil, err
@@ -81,37 +115,33 @@ func (d *DomObj) GetOverallState() (*DomMeta, error) {
 		return nil, errors.New(string(errput))
 	}
 
-	items := strings.Fields(string(output))
-	for _, item := range items {
-		kv := strings.Split(item, "=")
-		if len(kv) == 2 {
-			dm.Annotations[kv[0]] = kv[1]
+	for _, line := range strings.Split(string(output), "\n")[2:] {
+		items := strings.Fields(line)
+		if len(items) != 5 {
+			continue
 		}
+
+		dm.Nics = append(dm.Nics, Nic{
+			Interface: items[0],
+			Type:      items[1],
+			Source:    items[2],
+			Model:     items[3],
+			MAC:       items[4],
+		})
+	}
+
+	// get vcpu info
+	path := qemuXMLPath + dm.Name + ".xml"
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := xml.Unmarshal(content, &dm.VCpus); err != nil {
+		return nil, err
 	}
 
 	return dm, nil
-}
-
-func (d *DomObj) GetStats() (string, error) {
-	args := []string{"domstate", d.Domain}
-
-	output, errput, err := cmdutil.Command("virsh", args)
-	if err != nil {
-		return STATE_OTHER, err
-	}
-
-	if len(errput) != 0 {
-		return STATE_OTHER, errors.New(string(errput))
-	}
-
-	outputStr := strings.TrimSpace(string(output))
-
-	switch outputStr {
-	case STATE_RUNNING, STATE_SHUTOFF, STATE_PAUSED:
-		return outputStr, nil
-	default:
-		return STATE_OTHER, ErrDomStateUnclear
-	}
 }
 
 func (d *DomObj) GetDoms() ([]Dom, error) {
@@ -146,19 +176,4 @@ func (d *DomObj) GetDoms() ([]Dom, error) {
 	}
 
 	return doms, nil
-}
-
-func (d *DomObj) GetDomByUUID(uuid string) (Dom, error) {
-	doms, err := d.GetDoms()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, dom := range doms {
-		if uuid == dom.String() {
-			return dom, nil
-		}
-	}
-
-	return nil, ErrDomNotFound
 }

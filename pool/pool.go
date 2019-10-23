@@ -5,10 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"strconv"
 	"strings"
 
 	"libvirt_exporter/cmdutil"
+)
+
+const (
+	StateRunning = "running"
+	StateShutoff = "shut off"
+	StatePaused  = "paused"
+	StateOther   = "other"
 )
 
 type PoolType struct {
@@ -113,27 +119,4 @@ func (p *PoolObj) GetOverallState() (*PoolMeta, error) {
 	poolMeta.Type = type_
 
 	return poolMeta, nil
-}
-
-func ConvertToBytes(text string) (uint64, error) {
-	text = strings.ToLower(text)
-	if strings.HasSuffix(text, "tib") {
-		value := strings.ReplaceAll(text, "tib", "")
-		value = strings.TrimSpace(value)
-		ret, err := strconv.ParseFloat(value, 64)
-		if err != nil {
-			return 0, err
-		}
-		return uint64(ret * 1024 * 1024 * 1024 * 1024), nil
-	} else if strings.HasSuffix(text, "gib") {
-		value := strings.ReplaceAll(text, "gib", "")
-		value = strings.TrimSpace(value)
-		ret, err := strconv.ParseFloat(value, 64)
-		if err != nil {
-			return 0, err
-		}
-		return uint64(ret * 1024 * 1024 * 1024), nil
-	} else {
-		return 0, errors.New("parse error")
-	}
 }

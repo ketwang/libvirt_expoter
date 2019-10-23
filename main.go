@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"libvirt_exporter/exporter"
 	"net/http"
 	_ "net/http/pprof"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"libvirt_exporter/exporter"
 )
 
 func main() {
